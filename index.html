@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PL Title Race Calculator</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<h2>Premier League title race</h2>
+<p class="sub">Pick results for each team. Only the 19 Apr head-to-head is linked.</p>
+
+<div class="summary">
+  <div class="sc">
+    <div class="sc-label"><span class="dot ars-dot"></span>Arsenal</div>
+    <div class="sc-pts" id="ars-pts">70</div>
+    <div class="sc-max" id="ars-max">Max: 91 pts</div>
+  </div>
+  <div class="gap-cell">
+    <div class="gap-label">Gap</div>
+    <div class="gap-val" id="gap-val">+9</div>
+    <div class="gap-dir" id="gap-dir">Arsenal lead</div>
+  </div>
+  <div class="sc" style="text-align:right">
+    <div class="sc-label" style="justify-content:flex-end"><span class="dot mci-dot"></span>Man City</div>
+    <div class="sc-pts" id="mci-pts">61</div>
+    <div class="sc-max" id="mci-max" style="text-align:right">Max: 85 pts</div>
+  </div>
+</div>
+
+<div class="grid" id="fixture-grid">
+  <div class="col-header ars-col"><span class="dot ars-dot"></span>Arsenal</div>
+  <div class="col-header right"><span class="dot mci-dot"></span>Man City</div>
+</div>
+
+<div><button class="reset-btn" onclick="resetAll()">Reset all</button></div>
+
+<script src="script.js"></script>
+</body>
+</html>
