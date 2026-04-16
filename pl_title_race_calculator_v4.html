@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PL Title Race Calculator</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#fff;color:#111;padding:1.5rem;max-width:640px;margin:0 auto}
+h2{font-size:18px;font-weight:500;margin-bottom:4px}
+.sub{font-size:13px;color:#666;margin-bottom:1.25rem}
+
+.summary{display:grid;grid-template-columns:1fr auto 1fr;gap:8px;margin-bottom:1.25rem;align-items:center}
+.sc{background:#f4f4f4;border-radius:8px;padding:10px 12px}
+.sc-label{font-size:11px;color:#666;display:flex;align-items:center;gap:5px;margin-bottom:3px}
+.sc-pts{font-size:22px;font-weight:500;line-height:1}
+.sc-max{font-size:11px;color:#888;margin-top:2px}
+.dot{width:7px;height:7px;border-radius:50%;display:inline-block;flex-shrink:0}
+.ars-dot{background:#EF0107}
+.mci-dot{background:#6CABDD}
+.gap-cell{background:#f4f4f4;border-radius:8px;padding:10px 12px;text-align:center}
+.gap-label{font-size:11px;color:#666;margin-bottom:3px}
+.gap-val{font-size:18px;font-weight:500;line-height:1}
+.gap-dir{font-size:11px;color:#888;margin-top:2px}
+
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:0}
+.col-header{font-size:11px;font-weight:500;color:#888;padding:5px 8px;border-bottom:0.5px solid #e0e0e0;display:flex;align-items:center;gap:5px}
+.col-header.right{justify-content:flex-end}
+.ars-col{border-right:0.5px solid #e0e0e0}
+
+.row-ars,.row-mci{padding:7px 8px;border-bottom:0.5px solid #e8e8e8;display:flex;align-items:center;gap:6px;min-height:38px}
+.row-ars{border-right:0.5px solid #e0e0e0;justify-content:flex-start}
+.row-mci{justify-content:flex-end}
+
+.fixture-text{font-size:12px;color:#111;flex:1}
+.fixture-text strong{font-weight:500}
+.fixture-text.right{text-align:right}
+.date-text{font-size:10px;color:#888;white-space:nowrap}
+
+.rbtn-group{display:flex;flex-shrink:0}
+.rbtn{width:26px;height:26px;font-size:11px;font-weight:500;border:0.5px solid #ccc;background:transparent;color:#888;cursor:pointer;transition:background .1s,color .1s,border-color .1s;position:relative;display:flex;align-items:center;justify-content:center}
+.rbtn:first-child{border-radius:5px 0 0 5px}
+.rbtn:last-child{border-radius:0 5px 5px 0}
+.rbtn:not(:first-child){margin-left:-0.5px}
+.rbtn:hover{background:#f4f4f4;z-index:1}
+.rbtn.sel-w{background:#3B6D11;border-color:#3B6D11;color:#fff;z-index:2}
+.rbtn.sel-d{background:#854F0B;border-color:#854F0B;color:#fff;z-index:2}
+.rbtn.sel-l{background:#A32D2D;border-color:#A32D2D;color:#fff;z-index:2}
+
+.spacer-text{font-size:11px;color:#bbb;font-style:italic}
+
+.reset-btn{font-size:11px;color:#888;background:transparent;border:0.5px solid #ccc;border-radius:6px;padding:3px 10px;cursor:pointer;margin-top:.75rem}
+.reset-btn:hover{background:#f4f4f4}
+</style>
+</head>
+<body>
+
+<h2>Premier League title race</h2>
+<p class="sub">Pick results for each team. Only the 19 Apr head-to-head is linked.</p>
+
+<div class="summary">
+  <div class="sc">
+    <div class="sc-label"><span class="dot ars-dot"></span>Arsenal</div>
+    <div class="sc-pts" id="ars-pts">70</div>
+    <div class="sc-max" id="ars-max">Max: 91 pts</div>
+  </div>
+  <div class="gap-cell">
+    <div class="gap-label">Gap</div>
+    <div class="gap-val" id="gap-val">+9</div>
+    <div class="gap-dir" id="gap-dir">Arsenal lead</div>
+  </div>
+  <div class="sc" style="text-align:right">
+    <div class="sc-label" style="justify-content:flex-end"><span class="dot mci-dot"></span>Man City</div>
+    <div class="sc-pts" id="mci-pts">61</div>
+    <div class="sc-max" id="mci-max" style="text-align:right">Max: 85 pts</div>
+  </div>
+</div>
+
+<div class="grid" id="fixture-grid">
+  <div class="col-header ars-col"><span class="dot ars-dot"></span>Arsenal</div>
+  <div class="col-header right"><span class="dot mci-dot"></span>Man City</div>
+</div>
+
+<div><button class="reset-btn" onclick="resetAll()">Reset all</button></div>
+
+<script>
+const BASE = {ars:70, mci:61};
+
+const ROWS = [
+  {date:'11 Apr', ars:{home:true,  opp:'Bournemouth'},    mci:null,                          linked:false},
+  {date:'12 Apr', ars:null,                               mci:{home:false,opp:'Chelsea'},     linked:false},
+  {date:'19 Apr', ars:{home:false, opp:'Man City'},       mci:{home:true, opp:'Arsenal'},     linked:true},
+  {date:'25 Apr', ars:{home:true,  opp:'Newcastle'},      mci:null,                          linked:false},
+  {date:'26 Apr', ars:null,                               mci:{home:false,opp:'Burnley'},     linked:false},
+  {date:'2 May',  ars:{home:true,  opp:'Fulham'},         mci:null,                          linked:false},
+  {date:'4 May',  ars:null,                               mci:{home:false,opp:'Everton'},     linked:false},
+  {date:'9 May',  ars:{home:false, opp:'West Ham'},       mci:{home:true, opp:'Brentford'},   linked:false},
+  {date:'17 May', ars:{home:true,  opp:'Burnley'},        mci:{home:false,opp:'Bournemouth'}, linked:false},
+  {date:'24 May', ars:{home:false, opp:'Crystal Palace'}, mci:{home:true, opp:'Aston Villa'}, linked:false},
+  {date:'TBC',    ars:null,                               mci:{home:true, opp:'Crystal Palace'},linked:false},
+];
+
+const state = ROWS.map(()=>({ars:null,mci:null}));
+
+function pts(r){return r==='W'?3:r==='D'?1:0}
+function calcPts(team){return BASE[team]+state.reduce((s,st)=>s+pts(st[team]),0)}
+function maxPts(team){return BASE[team]+state.reduce((s,st,i)=>{
+  const g=ROWS[i][team];
+  return g?s+(st[team]===null?3:pts(st[team])):s;
+},0)}
+
+function pick(rowIdx, team, result){
+  const newVal = state[rowIdx][team]===result?null:result;
+  state[rowIdx][team]=newVal;
+  if(ROWS[rowIdx].linked){
+    const other=team==='ars'?'mci':'ars';
+    state[rowIdx][other]=newVal===null?null:newVal==='W'?'L':newVal==='L'?'W':'D';
+  }
+  render();
+}
+
+function resetAll(){state.forEach(s=>{s.ars=null;s.mci=null});render()}
+
+function makeButtons(rowIdx, team, r){
+  return `<div class="rbtn-group">
+    <button class="rbtn ${r==='W'?'sel-w':''}" onclick="pick(${rowIdx},'${team}','W')">W</button>
+    <button class="rbtn ${r==='D'?'sel-d':''}" onclick="pick(${rowIdx},'${team}','D')">D</button>
+    <button class="rbtn ${r==='L'?'sel-l':''}" onclick="pick(${rowIdx},'${team}','L')">L</button>
+  </div>`;
+}
+
+function render(){
+  const grid=document.getElementById('fixture-grid');
+  while(grid.children.length>2) grid.removeChild(grid.lastChild);
+
+  ROWS.forEach((row,i)=>{
+    const st=state[i];
+    const linked=row.linked;
+
+    const arsCell=document.createElement('div');
+    arsCell.className='row-ars';
+    if(linked) arsCell.style.background='#f9f9f9';
+    if(row.ars){
+      const vs=row.ars.home?'vs':'@';
+      const opp=row.ars.home?`<strong>${row.ars.opp}</strong>`:row.ars.opp;
+      arsCell.innerHTML=`${makeButtons(i,'ars',st.ars)}<div class="fixture-text"><span class="date-text">${row.date} </span>${vs} ${opp}</div>`;
+    } else {
+      arsCell.innerHTML=`<span class="spacer-text">&mdash;</span>`;
+    }
+
+    const mciCell=document.createElement('div');
+    mciCell.className='row-mci';
+    if(linked) mciCell.style.background='#f9f9f9';
+    if(row.mci){
+      const vs=row.mci.home?'vs':'@';
+      const opp=row.mci.home?`<strong>${row.mci.opp}</strong>`:row.mci.opp;
+      mciCell.innerHTML=`<div class="fixture-text right"><span class="date-text">${row.date} </span>${vs} ${opp}</div>${makeButtons(i,'mci',st.mci)}`;
+    } else {
+      mciCell.innerHTML=`<span class="spacer-text" style="margin-left:auto">&mdash;</span>`;
+    }
+
+    grid.appendChild(arsCell);
+    grid.appendChild(mciCell);
+  });
+
+  const a=calcPts('ars'), m=calcPts('mci');
+  document.getElementById('ars-pts').textContent=a;
+  document.getElementById('mci-pts').textContent=m;
+  document.getElementById('ars-max').textContent='Max: '+maxPts('ars')+' pts';
+  document.getElementById('mci-max').textContent='Max: '+maxPts('mci')+' pts';
+  const gap=a-m;
+  document.getElementById('gap-val').textContent=(gap>=0?'+':'')+gap;
+  document.getElementById('gap-dir').textContent=gap>0?'Arsenal lead':gap<0?'Man City lead':'Level';
+}
+
+render();
+</script>
+</body>
+</html>
